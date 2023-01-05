@@ -37,8 +37,30 @@ function promptUser() {
             "Add Department"
             ]
     }
-    ]).then(function(answer) {
-        console.log(answer.userChoice);
+    ]).then((answer) => {
+        switch (answer.userChoice) {
+            case "View All Employees":
+                viewAllEmployees();
+            break;
+            case "Add Employee":
+                addEmployee();
+            break;
+            case "Update Employee Role":
+                updateEmployeeRole();
+            break;
+            case "View All Roles":
+                viewAllRoles();
+            break;
+            case "Add Role":
+                addRole();
+            break;
+            case "View All Departments":
+                viewAllDepartments();
+            break;
+            case "Add Department":
+                addDepartment();
+            break;
+        }
     })
     
 }
@@ -71,9 +93,17 @@ function viewAllEmployees() {
 }
 
 // function to add department
-function addDepartment(newDepartment) {
-    db.query(`INSERT INTO department (name) VALUES ("${newDepartment}")`)
-    console.log(`Added ${newDepartment} to the database`);
+function addDepartment() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "newDepartment",
+            message: "What is the name of the Department?"
+        }
+    ]).then((answer) => {
+        db.query(`INSERT INTO department (name) VALUES ("${answer.newDepartment}")`)
+        console.log(`Added ${answer.newDepartment} to the database`);
+    });
 }
 
 // function to add department
