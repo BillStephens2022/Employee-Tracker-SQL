@@ -21,6 +21,21 @@ const db = mysql.createConnection(
     console.log('Connected to the employees_db database')
 );
 
+// function to run an sql query to view all departments
+function viewAllDepartments() {
+    db.query(`SELECT * FROM department`, (err, results) => {
+        (err) ? console.log(err) : console.table(results);
+    });
+}
+
+// function to run an sql query to view all roles
+function viewAllRoles() {
+    db.query(`SELECT role.id, title, department.name AS department, salary 
+    FROM role INNER JOIN department ON role.department_id = department.id;`, (err, results) => {
+        (err) ? console.log(err) : console.table(results);
+    });
+}
+
 // function to run sql query to view all employees
 function viewAllEmployees() {
     db.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
@@ -33,26 +48,9 @@ function viewAllEmployees() {
     });
 }
 
-// function to run an sql query to view all employees
-function viewAllDepartments() {
-    db.query(`SELECT * FROM department`, (err, results) => {
-        (err) ? console.log(err) : console.table(results);
-    });
-}
-
-// function to run an sql query to view all employees
-function viewAllRoles() {
-    db.query(`SELECT role.id, title, department.name AS department, salary 
-    FROM role INNER JOIN department ON role.department_id = department.id;`, (err, results) => {
-        (err) ? console.log(err) : console.table(results);
-    });
-}
-
 viewAllDepartments();
 viewAllRoles();
 viewAllEmployees();
-
-
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
