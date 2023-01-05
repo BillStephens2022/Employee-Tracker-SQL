@@ -15,3 +15,6 @@ INNER JOIN role ON role.id = employee.role_id
 INNER JOIN department ON department.id = role.department_id
 LEFT JOIN employee e ON employee.manager_id = e.id;
 
+-- add department
+INSERT INTO department (name)
+VALUES("")

@@ -21,6 +21,28 @@ const db = mysql.createConnection(
     console.log('Connected to the employees_db database')
 );
 
+function promptUser() {
+    inquirer.prompt([
+    {
+        type: "list",
+        message: "What would you like to do",
+        name: "userChoice",
+        choices: [
+            "View All Employees",
+            "Add Employee",
+            "Update Employee Role",
+            "View All Roles",
+            "Add Role",
+            "View All Departments",
+            "Add Department"
+            ]
+    }
+    ]).then(function(answer) {
+        console.log(answer.userChoice);
+    })
+    
+}
+
 // function to run an sql query to view all departments
 function viewAllDepartments() {
     db.query(`SELECT * FROM department`, (err, results) => {
@@ -48,9 +70,32 @@ function viewAllEmployees() {
     });
 }
 
-viewAllDepartments();
-viewAllRoles();
-viewAllEmployees();
+// function to add department
+function addDepartment(newDepartment) {
+    db.query(`INSERT INTO department (name) VALUES ("${newDepartment}")`)
+    console.log(`Added ${newDepartment} to the database`);
+}
+
+// function to add department
+function addRole(newRole, newSalary, department) {
+
+    let departmentId = db.query(`SELECT id FROM department WHERE name = ${department}`);
+    console.log(departmentId);
+    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRole}", ${newSalary}, "${departmentId}")`)
+    console.log(`Added ${newRole} to the database`);
+}
+
+// test function calls - to be removed later
+promptUser();
+// const newRole = "Marketing Lead";
+// const newSalary = 140000;
+// const department = "Marketing";
+
+// addRole(newRole, newSalary, department);
+// viewAllDepartments();
+// viewAllRoles();
+// viewAllEmployees();
+
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
