@@ -20,3 +20,8 @@ const db = mysql.createConnection(
     },
     console.log('Connected to the employees_db database')
 );
+
+// set up Express server to listen on PORT defined above.
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
