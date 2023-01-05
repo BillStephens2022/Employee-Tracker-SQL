@@ -8,7 +8,7 @@ FROM role
 INNER JOIN department ON role.department_id = department.id;
 
 -- view all employees
-SELECT employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
+SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
 CONCAT(e.first_name, ' ',e.last_name) AS manager
 FROM employee
 INNER JOIN role ON role.id = employee.role_id

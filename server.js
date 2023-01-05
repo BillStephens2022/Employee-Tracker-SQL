@@ -23,7 +23,7 @@ const db = mysql.createConnection(
 
 // function to run sql query to view all employees
 function viewAllEmployees() {
-    db.query(`SELECT employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
+    db.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
     CONCAT(e.first_name, ' ',e.last_name) AS manager
     FROM employee
     INNER JOIN role ON role.id = employee.role_id
