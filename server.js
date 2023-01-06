@@ -6,6 +6,8 @@ const inquirer = require('inquirer');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+let departmentArray = [];
+
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -106,25 +108,50 @@ function addDepartment() {
     });
 }
 
-// function to add department
-function addRole(newRole, newSalary, department) {
-
-    let departmentId = db.query(`SELECT id FROM department WHERE name = ${department}`);
-    console.log(departmentId);
-    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRole}", ${newSalary}, "${departmentId}")`)
-    console.log(`Added ${newRole} to the database`);
+// function to add role
+function addRole() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "roleName",
+            message: "What is the name of the Role?"
+        },
+        {
+            type: "input",
+            name: "roleSalary",
+            message: "What is the salary of the role?"
+        },
+        {
+            type: "list",
+            name: "roleDepartment",
+            message: "What department does the role belong to?",
+            choices: getDepartmentArray()
+        }
+    ]).then((answer) => {
+        let departmentId = getDepartmentArray().indexOf(answer.roleDepartment) + 1
+        db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, ${departmentId})`)
+        console.log(`Added ${answer.roleName} with salary ${answer.roleSalary} to the database and department ${answer.roleDepartment} with id: ${departmentId}`)
+    });
 }
 
-// test function calls - to be removed later
-promptUser();
-// const newRole = "Marketing Lead";
-// const newSalary = 140000;
-// const department = "Marketing";
+// get department id of role name
+function getDepartmentArray() {
+    db.query(`SELECT name FROM department;`, (err, res) => {
+        if (err) {
+            console.log(err);
+        } 
+        for (let i = 0; i < res.length; i++) {     
+            departmentArray.push(res[i].name);
+        };
+    });
+    return departmentArray;
+}
 
-// addRole(newRole, newSalary, department);
-// viewAllDepartments();
-// viewAllRoles();
-// viewAllEmployees();
+
+
+
+promptUser();
+
 
 
 // set up Express server to listen on PORT defined above.
