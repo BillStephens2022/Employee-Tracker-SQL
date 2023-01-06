@@ -3,12 +3,18 @@ const express = require('express');
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 
+// Set up of server on a port
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// for user to select from a list of existing departments in the database
 let departmentArray = [];
+// for user to select froma list of existing roles in the database
 let rolesArray = [];
+// for user to select a manager from a list of employees in the database
 let managersArray = [];
+// for user to select (using Inquirer from an array of things that the application can do)
+let appChoices = ["View All Employees", "Add Employee", "Update Employee Role", "View All Roles", "Add Role", "View All Departments", "Add Department"];
 
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
@@ -25,21 +31,14 @@ const db = mysql.createConnection(
     console.log('Connected to the employees_db database')
 );
 
+// function to prompt user with list of things to do and to execute functions depending on their choice.
 function promptUser() {
     inquirer.prompt([
     {
         type: "list",
         message: "What would you like to do",
         name: "userChoice",
-        choices: [
-            "View All Employees",
-            "Add Employee",
-            "Update Employee Role",
-            "View All Roles",
-            "Add Role",
-            "View All Departments",
-            "Add Department"
-            ]
+        choices: appChoices
     }
     ]).then((answer) => {
         switch (answer.userChoice) {
@@ -176,7 +175,7 @@ function addEmployee() {
         }
     ]).then((answer) => {
         let roleId = getRolesArray().indexOf(answer.employeeRole) + 1
-        let managerId = getManagersArray().indexOf(answer.employeeManager) + 1
+        let managerId = getManagersArray().indexOf(answer.employeeManager) + 1;
         db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
         console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
     });
@@ -197,7 +196,7 @@ function getRolesArray() {
 
 // function to get an array of managers
 function getManagersArray() {
-    db.query(`SELECT first_name, last_name FROM employee WHERE manager_id is NULL;`, (err, res) => {
+    db.query(`SELECT first_name, last_name, id FROM employee;`, (err, res) => {
         if (err) {
             console.log(err);
         } 
@@ -210,11 +209,7 @@ function getManagersArray() {
 }
 
 
-
-
 promptUser();
-
-
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
