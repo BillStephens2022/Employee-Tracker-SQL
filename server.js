@@ -7,6 +7,8 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 
 let departmentArray = [];
+let rolesArray = [];
+let managersArray = [];
 
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
@@ -134,7 +136,7 @@ function addRole() {
     });
 }
 
-// get department id of role name
+// function to get an array of departments
 function getDepartmentArray() {
     db.query(`SELECT name FROM department;`, (err, res) => {
         if (err) {
@@ -145,6 +147,66 @@ function getDepartmentArray() {
         };
     });
     return departmentArray;
+}
+
+// function to add employee
+function addEmployee() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "firstName",
+            message: "What is the employee's first name?"
+        },
+        {
+            type: "input",
+            name: "lastName",
+            message: "What is the employee's last name?"
+        },
+        {
+            type: "list",
+            name: "employeeRole",
+            message: "What is the employee's role?",
+            choices: getRolesArray()
+        },
+        {
+            type: "list",
+            name: "employeeManager",
+            message: "Who is the employee's manager?",
+            choices: getManagersArray()
+        }
+    ]).then((answer) => {
+        let roleId = getRolesArray().indexOf(answer.employeeRole) + 1
+        let managerId = getManagersArray().indexOf(answer.employeeManager) + 1
+        db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
+        console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
+    });
+}
+
+// function to get an array of roles
+function getRolesArray() {
+    db.query(`SELECT title FROM role;`, (err, res) => {
+        if (err) {
+            console.log(err);
+        } 
+        for (let i = 0; i < res.length; i++) {     
+            rolesArray.push(res[i].title);
+        };
+    });
+    return rolesArray;
+}
+
+// function to get an array of managers
+function getManagersArray() {
+    db.query(`SELECT first_name, last_name FROM employee WHERE manager_id is NULL;`, (err, res) => {
+        if (err) {
+            console.log(err);
+        } 
+        for (let i = 0; i < res.length; i++) {
+            let managerName = `${res[i].first_name} ${res[i].last_name}`;
+            managersArray.push(managerName);
+        };
+    });
+    return managersArray;
 }
 
 
