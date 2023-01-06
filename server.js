@@ -149,11 +149,13 @@ function addRole() {
             choices: getDepartmentArray()
         }
     ]).then((answer) => {
-        let departmentId = getDepartmentArray().indexOf(answer.roleDepartment) + 1
-        db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, ${departmentId})`)
-        console.log(`Added ${answer.roleName} with salary ${answer.roleSalary} to the database and department ${answer.roleDepartment} with id: ${departmentId}`)
-        promptUser();
-    });
+            db.query(`SELECT id FROM department WHERE name = "${answer.roleDepartment}";`, (err, result) => {
+            let departmentId = setValue(result[0].id);
+            db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, ${departmentId})`);
+            console.log(`Added ${answer.roleName} with salary ${answer.roleSalary} to the database and department ${answer.roleDepartment} with id: ${departmentId}`);
+            promptUser();
+        })      
+})
 }
 
 // function to get an array of departments
@@ -195,11 +197,17 @@ function addEmployee() {
             choices: getManagersArray()
         }
     ]).then((answer) => {
-        let roleId = getRolesArray().indexOf(answer.employeeRole) + 1
-        let managerId = getManagersArray().indexOf(answer.employeeManager) + 1;
+        db.query(`SELECT id FROM role WHERE title = "${answer.employeeRole}";`, (err, result) => {
+            let roleId = setValue(result[0].id);
+            db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeManager}";`, (err, result) => {
+                let managerId = setValue(result[0].id);
+        //let roleId = getRolesArray().indexOf(answer.employeeRole) + 1
+        //let managerId = getManagersArray().indexOf(answer.employeeManager) + 1;
         db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
         console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
         promptUser();
+            })
+        })
     });
 }
 
@@ -232,6 +240,34 @@ function getManagersArray() {
 
 
 promptUser();
+
+// test commands - TO BE DELETED
+// let departmentId = "";
+
+function setValue(value) {
+    departmentId = value;
+    return departmentId;
+}
+
+
+
+
+// getDepartmentId("Compliance", departmentArray);
+
+// function getDepartmentId(value, departmentArray) {
+//     console.log(departmentArray.length);
+//     console.log(getDepartmentArray());
+//     for (let i=0; i < departmentArray.length; i++) {
+//         console.log(departmentArray);
+//         if (departmentArray[i].id === value) {
+//             console.log(idKey);
+//         };
+//     }
+// }
+
+//let array = [{1: "Legal"}, {2: "Compliance"}, {3: "Accounting"}];
+//getDepartmentId("Compliance", array);
+
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
