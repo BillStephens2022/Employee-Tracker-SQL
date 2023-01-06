@@ -14,7 +14,7 @@ let rolesArray = [];
 // for user to select a manager from a list of employees in the database
 let managersArray = [];
 // for user to select (using Inquirer from an array of things that the application can do)
-let appChoices = ["View All Employees", "Add Employee", "Update Employee Role", "View All Roles", "Add Role", "View All Departments", "Add Department"];
+let appChoices = ["View All Employees", "Add Employee", "Update Employee Role", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit Application"];
 
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
@@ -63,6 +63,8 @@ function promptUser() {
             case "Add Department":
                 addDepartment();
             break;
+            case "Quit Application":
+                process.exit();
         }
     })
     
@@ -71,15 +73,26 @@ function promptUser() {
 // function to run an sql query to view all departments
 function viewAllDepartments() {
     db.query(`SELECT * FROM department`, (err, results) => {
-        (err) ? console.log(err) : console.table(results);
+        if (err) {
+            console.log(err);
+         } else {
+            console.table(results);
+            promptUser();
+         };
     });
+    promptUser();
 }
 
 // function to run an sql query to view all roles
 function viewAllRoles() {
     db.query(`SELECT role.id, title, department.name AS department, salary 
     FROM role INNER JOIN department ON role.department_id = department.id;`, (err, results) => {
-        (err) ? console.log(err) : console.table(results);
+        if (err) {
+            console.log(err);
+         } else {
+            console.table(results);
+            promptUser();
+         };
     });
 }
 
@@ -91,8 +104,14 @@ function viewAllEmployees() {
     INNER JOIN role ON role.id = employee.role_id
     INNER JOIN department ON department.id = role.department_id
     LEFT JOIN employee e ON employee.manager_id = e.id;`, (err, results) => {
-        (err) ? console.log(err) : console.table(results);
+        if (err) {
+            console.log(err);
+         } else {
+            console.table(results);
+            promptUser();
+         }; 
     });
+    promptUser();
 }
 
 // function to add department
@@ -106,6 +125,7 @@ function addDepartment() {
     ]).then((answer) => {
         db.query(`INSERT INTO department (name) VALUES ("${answer.newDepartment}")`)
         console.log(`Added ${answer.newDepartment} to the database`);
+        promptUser();
     });
 }
 
@@ -132,6 +152,7 @@ function addRole() {
         let departmentId = getDepartmentArray().indexOf(answer.roleDepartment) + 1
         db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, ${departmentId})`)
         console.log(`Added ${answer.roleName} with salary ${answer.roleSalary} to the database and department ${answer.roleDepartment} with id: ${departmentId}`)
+        promptUser();
     });
 }
 
@@ -178,6 +199,7 @@ function addEmployee() {
         let managerId = getManagersArray().indexOf(answer.employeeManager) + 1;
         db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
         console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
+        promptUser();
     });
 }
 
