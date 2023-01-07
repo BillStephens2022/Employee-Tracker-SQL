@@ -25,25 +25,14 @@ const db = mysql.createConnection(
     console.log('Connected to the employees_db database')
 );
 
-// for user to select a manager from a list of employees in the database
+// for user to select from a list of employees in the database
 let employeeArray = getEmployeesArray();
-// for user to select froma list of existing roles in the database
+// for user to select froma list of roles in the database
 let roleArray = getRolesArray();
-// for user to select from a list of existing departments in the database
+// for user to select from a list of departments in the database
 let departmentArray = getDepartmentArray();
+// for user to select from a list of managers in the database including "none" where the employee is the manager
 let managerArray = getManagersArray();
-
-// function startProgram() {
-    // getEmployeesArray(), (err, result) => {err ? console.log(err) : console.log(result)}
-    // getEmployeesArray(), (err, res) => err ? console.log(err) : console.log(res)
-    // .then(() => {getRolesArray(), (err, res) => err ? console.log(err) : roleArray = res})
-    // .then(() => {getDepartmentArray(), (err, res) => err ? console.log(err) : departmentArray =  res})
-    // .then(() => {employeeArray.push('None'), (err, res) => err ? console.log(err) : managerArray = res})
-    // .then(() => console.log(managerArray))
-    // .then(() => promptUser());
-// }
-
-
 
 // function to prompt user with list of things to do and to execute functions depending on their choice.
 function promptUser() {
@@ -78,10 +67,10 @@ function promptUser() {
                 addDepartment();
             break;
             case "Quit Application":
+                console.log("Thanks for using Employee Tracker.  Goodbye!");
                 process.exit();
         }
     })
-    
 }
 
 // function to run an sql query to view all departments
@@ -193,8 +182,6 @@ function getDepartmentArray() {
 
 // function to add employee
 function addEmployee() {
-    
-
     inquirer.prompt([
         {
             type: "input",
@@ -324,18 +311,12 @@ function updateEmployeeRole() {
                             console.log(`Updated ${answer.employeeName} to have role ${answer.employeeRole} to the database`)
                             promptUser();
                         }
-                    });
-                    
-                }
-                
-        
-        
-            })
-            
+                    });                   
+                }     
+            })          
         })
     });
 }
-
 
 function setValue(value) {
     setId = value;
@@ -355,9 +336,9 @@ function asciiArt() {
         `);
 }
 
+// Start Program
 asciiArt();
 promptUser();
-//startProgram();
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
