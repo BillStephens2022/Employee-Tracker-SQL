@@ -36,6 +36,8 @@ let roleArray = getRolesArray();
 // for user to select from a list of existing departments in the database
 let departmentArray = getDepartmentArray();
 
+
+
 // function to prompt user with list of things to do and to execute functions depending on their choice.
 function promptUser() {
     inquirer.prompt([
@@ -205,18 +207,27 @@ function addEmployee() {
             type: "list",
             name: "employeeManager",
             message: "Who is the employee's manager?",
-            choices: employeeArray
+            choices: managerArray
         }
     ]).then((answer) => {
         db.query(`SELECT id FROM role WHERE title = "${answer.employeeRole}";`, (err, result) => {
-            let roleId = setValue(result[0].id);
-            db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeManager}";`, (err, result) => {
-                let managerId = setValue(result[0].id);
-        db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
-        console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
-            })
-            employeeArray = getEmployeesArray();
-            promptUser();
+            if (err) {
+                console.log(err);
+            } else {
+                let roleId = setValue(result[0].id);
+                db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeManager}";`, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        let managerId = setValue(result[0].id);
+                        db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
+                        console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
+                        employeeArray = getEmployeesArray();
+                        managerArray = employeeArray.push("None");
+                        promptUser();
+                    } 
+                })
+            }       
         })
     });
 }
