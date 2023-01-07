@@ -4,6 +4,10 @@
 
   Employee-Tracker is a command line program used for maintaining an employee database. A user is able to add new departments, roles, and employees, as well as update employee roles.  The user is also to view detailed tables with the full list of employees which shows their title, department, manager, and salary.
   
+  Screenshot:
+  
+  <img width="1374" alt="Screen Shot 2023-01-07 at 4 49 46 PM" src="https://user-images.githubusercontent.com/113722447/211171893-d36e896f-e184-483d-b646-75341628e475.png">
+
   ## Table of Contents
   
   - [Installation](#installation)
@@ -19,7 +23,9 @@
   
   ## Usage
   
-  After typing 'npm start' in the command line, the user is greeted with an ASCII art title and a menu of options. Simply select an item from the menu and respond to the prompts.
+  After typing 'npm start' in the command line, the user is greeted with an ASCII art title and a menu of options. Simply select an item from the menu and respond to the prompts.  See instructional video below:
+  
+https://user-images.githubusercontent.com/113722447/211171914-6f4be601-c719-4add-99dd-742a87443bfa.mp4
 
   ## License
 This application is covered under the MIT License.
