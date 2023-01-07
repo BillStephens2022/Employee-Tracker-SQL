@@ -7,12 +7,10 @@ const inquirer = require('inquirer');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-// for user to select from a list of existing departments in the database
-let departmentArray = [];
-// for user to select froma list of existing roles in the database
-let rolesArray = [];
-// for user to select a manager from a list of employees in the database
-let managersArray = [];
+
+
+
+
 // for user to select (using Inquirer from an array of things that the application can do)
 let appChoices = ["View All Employees", "Add Employee", "Update Employee Role", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit Application"];
 
@@ -30,6 +28,13 @@ const db = mysql.createConnection(
     },
     console.log('Connected to the employees_db database')
 );
+
+// for user to select a manager from a list of employees in the database
+let employeeArray = getEmployeesArray();
+// for user to select froma list of existing roles in the database
+let roleArray = getRolesArray();
+// for user to select from a list of existing departments in the database
+let departmentArray = getDepartmentArray();
 
 // function to prompt user with list of things to do and to execute functions depending on their choice.
 function promptUser() {
@@ -80,7 +85,6 @@ function viewAllDepartments() {
             promptUser();
          };
     });
-    promptUser();
 }
 
 // function to run an sql query to view all roles
@@ -111,7 +115,6 @@ function viewAllEmployees() {
             promptUser();
          }; 
     });
-    promptUser();
 }
 
 // function to add department
@@ -123,9 +126,15 @@ function addDepartment() {
             message: "What is the name of the Department?"
         }
     ]).then((answer) => {
-        db.query(`INSERT INTO department (name) VALUES ("${answer.newDepartment}")`)
-        console.log(`Added ${answer.newDepartment} to the database`);
-        promptUser();
+        db.query(`INSERT INTO department (name) VALUES ("${answer.newDepartment}")`, (err, res) => {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(`Added ${res.newDepartment} to the database`)
+                departmentArray = getDepartmentArray();
+                promptUser();
+            } 
+        });
     });
 }
 
@@ -146,13 +155,14 @@ function addRole() {
             type: "list",
             name: "roleDepartment",
             message: "What department does the role belong to?",
-            choices: getDepartmentArray()
+            choices: departmentArray
         }
     ]).then((answer) => {
             db.query(`SELECT id FROM department WHERE name = "${answer.roleDepartment}";`, (err, result) => {
             let departmentId = setValue(result[0].id);
             db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, ${departmentId})`);
             console.log(`Added ${answer.roleName} with salary ${answer.roleSalary} to the database and department ${answer.roleDepartment} with id: ${departmentId}`);
+            roleArray = getRolesArray();
             promptUser();
         })      
 })
@@ -160,15 +170,16 @@ function addRole() {
 
 // function to get an array of departments
 function getDepartmentArray() {
+    let departmentArr = [];
     db.query(`SELECT name FROM department;`, (err, res) => {
         if (err) {
             console.log(err);
         } 
         for (let i = 0; i < res.length; i++) {     
-            departmentArray.push(res[i].name);
+            departmentArr.push(res[i].name);
         };
     });
-    return departmentArray;
+    return departmentArr;
 }
 
 // function to add employee
@@ -188,86 +199,105 @@ function addEmployee() {
             type: "list",
             name: "employeeRole",
             message: "What is the employee's role?",
-            choices: getRolesArray()
+            choices: roleArray
         },
         {
             type: "list",
             name: "employeeManager",
             message: "Who is the employee's manager?",
-            choices: getManagersArray()
+            choices: employeeArray
         }
     ]).then((answer) => {
         db.query(`SELECT id FROM role WHERE title = "${answer.employeeRole}";`, (err, result) => {
             let roleId = setValue(result[0].id);
             db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeManager}";`, (err, result) => {
                 let managerId = setValue(result[0].id);
-        //let roleId = getRolesArray().indexOf(answer.employeeRole) + 1
-        //let managerId = getManagersArray().indexOf(answer.employeeManager) + 1;
         db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
         console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
-        promptUser();
             })
+            employeeArray = getEmployeesArray();
+            promptUser();
         })
     });
 }
 
 // function to get an array of roles
 function getRolesArray() {
+    let roleArr = [];
     db.query(`SELECT title FROM role;`, (err, res) => {
         if (err) {
             console.log(err);
         } 
         for (let i = 0; i < res.length; i++) {     
-            rolesArray.push(res[i].title);
+            roleArr.push(res[i].title);
         };
     });
-    return rolesArray;
+    return roleArr;
 }
 
 // function to get an array of managers
-function getManagersArray() {
+function getEmployeesArray() {
+    let employeeArr = [];
     db.query(`SELECT first_name, last_name, id FROM employee;`, (err, res) => {
         if (err) {
             console.log(err);
         } 
         for (let i = 0; i < res.length; i++) {
-            let managerName = `${res[i].first_name} ${res[i].last_name}`;
-            managersArray.push(managerName);
+            let employeeName = `${res[i].first_name} ${res[i].last_name}`;
+            employeeArr.push(employeeName);
         };
     });
-    return managersArray;
+    return employeeArr;
 }
 
+function updateEmployeeRole() {
+    inquirer.prompt([
+        {
+            type: "list",
+            name: "employeeName",
+            message: "Which employee's role would you like to update?",
+            choices: employeeArray
+        },
+        {
+            type: "list",
+            name: "employeeRole",
+            message: "Which role do you want to assign to the selected employee?",
+            choices: roleArray
+        }
+    ]).then((answer) => {
+        db.query(`SELECT id FROM role WHERE title = "${answer.employeeRole}";`, (err, result) => {
+            let roleId = setValue(result[0].id);
+            db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeName}";`, (err, result) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    let employeeId = setValue(result[0].id);
+                    db.query(`UPDATE employee SET role_id = ${roleId} WHERE id = ${employeeId};`, (err, result) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(`Updated ${answer.employeeName} to have role ${answer.employeeRole} to the database`)
+                            promptUser();
+                        }
+                    });
+                    
+                }
+                
+        
+        
+            })
+            
+        })
+    });
+}
 
-promptUser();
-
-// test commands - TO BE DELETED
-// let departmentId = "";
 
 function setValue(value) {
-    departmentId = value;
-    return departmentId;
+    setId = value;
+    return setId;
 }
 
-
-
-
-// getDepartmentId("Compliance", departmentArray);
-
-// function getDepartmentId(value, departmentArray) {
-//     console.log(departmentArray.length);
-//     console.log(getDepartmentArray());
-//     for (let i=0; i < departmentArray.length; i++) {
-//         console.log(departmentArray);
-//         if (departmentArray[i].id === value) {
-//             console.log(idKey);
-//         };
-//     }
-// }
-
-//let array = [{1: "Legal"}, {2: "Compliance"}, {3: "Accounting"}];
-//getDepartmentId("Compliance", array);
-
+promptUser();
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
