@@ -7,10 +7,6 @@ const inquirer = require('inquirer');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-
-
-
-
 // for user to select (using Inquirer from an array of things that the application can do)
 let appChoices = ["View All Employees", "Add Employee", "Update Employee Role", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit Application"];
 
@@ -35,6 +31,17 @@ let employeeArray = getEmployeesArray();
 let roleArray = getRolesArray();
 // for user to select from a list of existing departments in the database
 let departmentArray = getDepartmentArray();
+let managerArray = getManagersArray();
+
+// function startProgram() {
+    // getEmployeesArray(), (err, result) => {err ? console.log(err) : console.log(result)}
+    // getEmployeesArray(), (err, res) => err ? console.log(err) : console.log(res)
+    // .then(() => {getRolesArray(), (err, res) => err ? console.log(err) : roleArray = res})
+    // .then(() => {getDepartmentArray(), (err, res) => err ? console.log(err) : departmentArray =  res})
+    // .then(() => {employeeArray.push('None'), (err, res) => err ? console.log(err) : managerArray = res})
+    // .then(() => console.log(managerArray))
+    // .then(() => promptUser());
+// }
 
 
 
@@ -186,6 +193,8 @@ function getDepartmentArray() {
 
 // function to add employee
 function addEmployee() {
+    
+
     inquirer.prompt([
         {
             type: "input",
@@ -215,17 +224,28 @@ function addEmployee() {
                 console.log(err);
             } else {
                 let roleId = setValue(result[0].id);
+                //employeeArray = getEmployeesArray();
                 db.query(`SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = "${answer.employeeManager}";`, (err, result) => {
                     if (err) {
                         console.log(err);
                     } else {
-                        let managerId = setValue(result[0].id);
-                        db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
-                        console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
-                        employeeArray = getEmployeesArray();
-                        managerArray = employeeArray.push("None");
-                        promptUser();
-                    } 
+                        if ((result.length) > 0) {
+                            managerId = setValue(result[0].id);
+                            db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
+                            console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
+                            employeeArray = getEmployeesArray();
+                            managerArray = employeeArray.push("None");
+                            promptUser();
+                        } else {
+                            managerId = null;
+                            console.log(managerId);
+                            db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${roleId}, ${managerId})`)
+                            console.log(`Added ${answer.firstName} ${answer.lastName} with role ${answer.employeeRole} reporting to ${answer.employeeManager} to the database`)
+                            employeeArray = getEmployeesArray();
+                            managerArray = employeeArray.push("None");
+                            promptUser();
+                        } 
+                    }
                 })
             }       
         })
@@ -259,6 +279,20 @@ function getEmployeesArray() {
         };
     });
     return employeeArr;
+}
+
+function getManagersArray() {
+    let managerArr = ['None'];
+    db.query(`SELECT first_name, last_name, id FROM employee;`, (err, res) => {
+        if (err) {
+            console.log(err);
+        } 
+        for (let i = 0; i < res.length; i++) {
+            let managerName = `${res[i].first_name} ${res[i].last_name}`;
+            managerArr.push(managerName);
+        };
+    });
+    return managerArr;
 }
 
 function updateEmployeeRole() {
@@ -308,7 +342,22 @@ function setValue(value) {
     return setId;
 }
 
+function asciiArt() {
+    console.log(`
+        
+#    _____                 _                         _____               _               _ 
+#   | ____|_ __ ___  _ __ | | ___  _   _  ___  ___  |_   _| __ __ _  ___| | _____ _ __  | |
+#   |  _| | '_ \` _ \\| '_ \\| |/ _ \\| | | |/ _ \\/ _ \\   | || '__/ _\` |/ __| |/ / _ \\ '__| | |
+#   | |___| | | | | | |_) | | (_) | |_| |  __/  __/   | || | | (_| | (__|   <  __/ |    |_|
+#   |_____|_| |_| |_| .__/|_|\\___/ \\__, |\\___|\\___|   |_||_|  \\__,_|\\___|_|\\_\\___|_|    (_)
+#                   |_|            |___/                                                   
+
+        `);
+}
+
+asciiArt();
 promptUser();
+//startProgram();
 
 // set up Express server to listen on PORT defined above.
 app.listen(PORT, () => {
